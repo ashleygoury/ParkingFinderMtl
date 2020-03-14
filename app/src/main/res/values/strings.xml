@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">ParkingFinderMtl</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="msgIcon">Msg</string>
+    <string name="btnSaveParking">Save Parking</string>
+</resources>
