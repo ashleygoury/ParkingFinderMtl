@@ -2,7 +2,9 @@ package com.example.parkingfindermtl;
 
 import androidx.fragment.app.FragmentActivity;
 
+import android.annotation.SuppressLint;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -30,102 +32,83 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private ImageView msgBtn;
     private Button saveBtn;
+    private String apiKey;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+
+//        Initialise fragment
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
-        msgBtn = findViewById(R.id.btn_msg);
-        saveBtn = findViewById(R.id.btnSaveParking);
-
-        msgBtn.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch(event.getAction())
-                {
-                    case MotionEvent.ACTION_DOWN:
-                        v.setBackgroundResource(R.drawable.highlightbutton);
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        v.setBackgroundResource(R.drawable.roundedbutton);
-                        break;
-                }
-                return true;
-            }
-        });
-
-        saveBtn.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch(event.getAction())
-                {
-                    case MotionEvent.ACTION_DOWN:
-                        v.setBackgroundResource(R.drawable.highlightsemiroundedbutton);
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        v.setBackgroundResource(R.drawable.semiroundedbutton);
-                        break;
-                }
-                return true;
-            }
-        });
-
-        String apiKey = getString(R.string.google_maps_key);
-
-        /**
-         * Initialize Places. For simplicity, the API key is hard-coded. In a production
-         * environment we recommend using a secure mechanism to manage API keys.
-         */
-        if (!Places.isInitialized()) {
-            Places.initialize(getApplicationContext(), apiKey);
-        }
-
-// Create a new Places client instance.
-        PlacesClient placesClient = Places.createClient(this);
-
-        // Initialize the AutocompleteSupportFragment.
         AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
                 getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
 
+//        Initialise api key
+        apiKey = getString(R.string.google_maps_key);
+
+//        Initialise views
+        msgBtn = findViewById(R.id.btn_msg);
+        saveBtn = findViewById(R.id.btnSaveParking);
+
+//        Initialise map
+        mapFragment.getMapAsync(this);
+
+//        Change color on click
+        msgBtn.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                changeBtnActif(v, event, R.drawable.highlightbutton, R.drawable.roundedbutton);
+                return true;
+            }
+        });
+        saveBtn.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                changeBtnActif(v, event, R.drawable.highlightsemiroundedbutton, R.drawable.semiroundedbutton);
+                return true;
+            }
+        });
+
+//        Initialise Google places api
+        if (!Places.isInitialized()) {
+            Places.initialize(getApplicationContext(), apiKey);
+        }
+        PlacesClient placesClient = Places.createClient(this);
+
+//        Autocomplete textView
         autocompleteFragment.getView().setBackgroundColor(Color.WHITE);
-
         autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
-
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
-                // TODO: Get info about the selected place.
                 Log.i("TAG", "Place: " + place.getName() + ", " + place.getId());
             }
 
             @Override
             public void onError(Status status) {
-                // TODO: Handle the error.
                 Log.i("TAG", "An error occurred: " + status);
             }
         });
     }
 
+    public void changeBtnActif(View v, MotionEvent event, int highlight, int normal) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                v.setBackgroundResource(highlight);
+                break;
+            case MotionEvent.ACTION_UP:
+                v.setBackgroundResource(normal);
+                break;
+        }
+    }
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
