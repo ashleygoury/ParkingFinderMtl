@@ -10,7 +10,10 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.Switch;
+import android.widget.Toast;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -27,11 +30,12 @@ import com.google.android.libraries.places.widget.listener.PlaceSelectionListene
 
 import java.util.Arrays;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, CompoundButton.OnCheckedChangeListener {
 
     private GoogleMap mMap;
     private ImageView msgBtn;
     private Button saveBtn;
+    private Switch userTrack;
     private String apiKey;
 
     @SuppressLint("ClickableViewAccessibility")
@@ -52,6 +56,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //        Initialise views
         msgBtn = findViewById(R.id.btn_msg);
         saveBtn = findViewById(R.id.btnSaveParking);
+        userTrack = findViewById(R.id.switchFollow);
 
 //        Initialise map
         mapFragment.getMapAsync(this);
@@ -71,6 +76,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return true;
             }
         });
+
+//        Event handler on switch
+        userTrack.setOnCheckedChangeListener(this);
 
 //        Initialise Google places api
         if (!Places.isInitialized()) {
@@ -112,5 +120,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        if(isChecked == true) {
+            Toast.makeText(this, "It is true", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "It is false", Toast.LENGTH_SHORT).show();
+        }
     }
 }
