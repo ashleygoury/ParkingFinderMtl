@@ -23,6 +23,7 @@ import android.widget.Toast;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -128,15 +129,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 //        Autocomplete textView
         autocompleteFragment.getView().setBackgroundColor(Color.WHITE);
-        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
+        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
-                Log.i("TAG", "Place: " + place.getName() + ", " + place.getId());
-
-//                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-//                        new LatLng(mLastKnownLocation.getLatitude(),
-//                                mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                LatLng result = new LatLng(place.getLatLng().latitude, place.getLatLng().longitude);
+                CameraUpdate loc = CameraUpdateFactory.newLatLngZoom(result, DEFAULT_ZOOM);
+                mMap.animateCamera(loc);
             }
 
             @Override
