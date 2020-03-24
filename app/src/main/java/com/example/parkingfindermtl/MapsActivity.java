@@ -53,12 +53,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Button saveBtn;
     private Switch userTrack;
     private String apiKey;
+    private boolean followme = false;
 
     // The entry point to the Fused Location Provider.
     private FusedLocationProviderClient mFusedLocationProviderClient;
 
-    // A default location and default zoom to use when location permission is
-    // not granted.
+    //   The geographical location where the device is currently located. That is, the last-known
+//   location retrieved by the Fused Location Provider.
+    private Location mLastKnownLocation;
+
     private final LatLng mDefaultLocation = new LatLng(45.551079, -73.553547);
     private static final int DEFAULT_ZOOM = 15;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -66,13 +69,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final long MIN_TIME = 1000;
     private static final float MIN_DISTANCE = 0;
     private boolean mLocationPermissionGranted;
-    private boolean followme = false;
-
     private static final String TAG = MapsActivity.class.getSimpleName();
-
-    //   The geographical location where the device is currently located. That is, the last-known
-//   location retrieved by the Fused Location Provider.
-    private Location mLastKnownLocation;
 
     //   Keys for storing activity state.
     private static final String KEY_CAMERA_POSITION = "camera_position";
@@ -281,34 +278,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        if (isChecked) {
-            followme = true;
-        } else {
-            followme = false;
-        }
+        followme = isChecked;
     }
 
     @Override
     public void onLocationChanged(Location location) {
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         if (followme) {
-            CameraPosition.Builder positionBuilder = new CameraPosition.Builder();
-            positionBuilder.target(latLng);
-            positionBuilder.zoom(15f);
-            positionBuilder.bearing(45);
-            positionBuilder.tilt(60);
+            CameraPosition.Builder positionBuilder = new CameraPosition.Builder()
+                    .target(latLng)
+                    .zoom(17f)
+                    .tilt(30);
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(positionBuilder.build()));
-        } else {
-            Toast.makeText(this, "I am uncheck", Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) { }
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+    }
 
     @Override
-    public void onProviderEnabled(String provider) { }
+    public void onProviderEnabled(String provider) {
+    }
 
     @Override
-    public void onProviderDisabled(String provider) { }
+    public void onProviderDisabled(String provider) {
+    }
 }
