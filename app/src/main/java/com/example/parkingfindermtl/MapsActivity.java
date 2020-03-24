@@ -5,11 +5,15 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -41,8 +45,9 @@ import com.google.android.libraries.places.widget.listener.PlaceSelectionListene
 
 import java.util.Arrays;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, CompoundButton.OnCheckedChangeListener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, CompoundButton.OnCheckedChangeListener, LocationListener {
     private GoogleMap mMap;
+    private LocationManager locationManager;
     private CameraPosition mCameraPosition;
     private ImageView msgBtn;
     private Button saveBtn;
@@ -57,7 +62,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private final LatLng mDefaultLocation = new LatLng(45.551079, -73.553547);
     private static final int DEFAULT_ZOOM = 15;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private static final int PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1;
+    private static final long MIN_TIME = 1000;
+    private static final float MIN_DISTANCE = 0;
     private boolean mLocationPermissionGranted;
+    private boolean followme = false;
 
     private static final String TAG = MapsActivity.class.getSimpleName();
 
@@ -143,6 +152,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Log.i("TAG", "An error occurred: " + status);
             }
         });
+
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
+            return;
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME, MIN_DISTANCE, this);
     }
 
     //      Saves the state of the map when the activity is paused.
@@ -260,10 +281,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        if (isChecked == true) {
-            Toast.makeText(this, "It is true", Toast.LENGTH_SHORT).show();
+        if (isChecked) {
+            followme = true;
         } else {
-            Toast.makeText(this, "It is false", Toast.LENGTH_SHORT).show();
+            followme = false;
         }
     }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        if (followme) {
+            CameraPosition.Builder positionBuilder = new CameraPosition.Builder();
+            positionBuilder.target(latLng);
+            positionBuilder.zoom(15f);
+            positionBuilder.bearing(45);
+            positionBuilder.tilt(60);
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(positionBuilder.build()));
+        } else {
+            Toast.makeText(this, "I am uncheck", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) { }
+
+    @Override
+    public void onProviderEnabled(String provider) { }
+
+    @Override
+    public void onProviderDisabled(String provider) { }
 }
