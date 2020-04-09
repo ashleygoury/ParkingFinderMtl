@@ -48,19 +48,29 @@ import java.util.Arrays;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, CompoundButton.OnCheckedChangeListener, LocationListener {
     private GoogleMap mMap;
-    private LocationManager locationManager;
-    private CameraPosition mCameraPosition;
-    private ImageView msgBtn;
-    private Button saveBtn;
-    private Switch userTrack;
-    private String apiKey;
-    private boolean followme = false;
-    private SharedPreferences sharedpreferences;
-    boolean parked;
-    SharedPreferences.Editor editor;
-    Marker marker;
 
-    // The entry point to the Fused Location Provider.
+    private LocationManager locationManager;
+
+    private CameraPosition mCameraPosition;
+
+    private ImageView msgBtn;
+
+    private Button saveBtn;
+
+    private Switch userTrack;
+
+    private String apiKey;
+
+    private boolean followme = false;
+    private boolean parked;
+    private boolean mLocationPermissionGranted;
+
+    private SharedPreferences sharedpreferences;
+    private SharedPreferences.Editor editor;
+
+    private Marker marker;
+
+    //    The entry point to the Fused Location Provider.
     private FusedLocationProviderClient mFusedLocationProviderClient;
 
     //   The geographical location where the device is currently located. That is, the last-known
@@ -68,14 +78,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location mLastKnownLocation;
 
     private final LatLng mDefaultLocation = new LatLng(45.551079, -73.553547);
+
     private static final int DEFAULT_ZOOM = 15;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final int PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1;
-    private static final long MIN_TIME = 1000;
-    private static final float MIN_DISTANCE = 0;
-    private boolean mLocationPermissionGranted;
-    private static final String TAG = MapsActivity.class.getSimpleName();
 
+    private static final long MIN_TIME = 1000;
+
+    private static final float MIN_DISTANCE = 0;
+
+    private static final String TAG = MapsActivity.class.getSimpleName();
     //   Keys for storing activity state.
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
@@ -110,6 +122,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //        Initialise map
         mapFragment.getMapAsync(this);
 
+//        Initialise sharedPreference
         sharedpreferences = getSharedPreferences("com.example.parkingfindermtl.PREFERENCE_FILE_KEY", Context.MODE_PRIVATE);
 
 //        Change color on click
@@ -131,7 +144,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //        Event handler on switch
         userTrack.setOnCheckedChangeListener(this);
 
-        // Construct a FusedLocationProviderClient.
+//        Construct a FusedLocationProviderClient.
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
 //        Initialise Google places api
@@ -194,7 +207,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public static double getFloatAsDouble(float value) {
-        return Double.valueOf(Float.valueOf(value).toString()).doubleValue();
+        return Double.parseDouble(Float.valueOf(value).toString());
     }
 
     //      Saves the state of the map when the activity is paused.
@@ -232,7 +245,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         getDeviceLocation();
 
         parked = sharedpreferences.getBoolean("parked", false);
-        editor = sharedpreferences.edit();
 
         if (parked) {
             double lat = getFloatAsDouble(sharedpreferences.getFloat("lat", 0));
@@ -264,8 +276,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                                 mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
                             }
                         } else {
-                            Log.d(TAG, "Current location is null. Using defaults.");
-                            Log.e(TAG, "Exception: %s", task.getException());
                             mMap.moveCamera(CameraUpdateFactory
                                     .newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
                             mMap.getUiSettings().setMyLocationButtonEnabled(false);
@@ -295,13 +305,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                            @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         mLocationPermissionGranted = false;
-        switch (requestCode) {
-            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    mLocationPermissionGranted = true;
-                }
+        if (requestCode == PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION) {// If request is cancelled, the result arrays are empty.
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                mLocationPermissionGranted = true;
             }
         }
         updateLocationUI();
@@ -343,6 +350,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+//    The following methods are empty
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
     }
