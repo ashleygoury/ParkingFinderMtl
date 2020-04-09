@@ -8,9 +8,9 @@ import androidx.fragment.app.FragmentActivity;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -34,6 +34,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -54,6 +55,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Switch userTrack;
     private String apiKey;
     private boolean followme = false;
+    private SharedPreferences sharedpreferences;
+    boolean parked;
+    SharedPreferences.Editor editor;
+    Marker marker;
 
     // The entry point to the Fused Location Provider.
     private FusedLocationProviderClient mFusedLocationProviderClient;
@@ -105,6 +110,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //        Initialise map
         mapFragment.getMapAsync(this);
 
+        sharedpreferences = getSharedPreferences("com.example.parkingfindermtl.PREFERENCE_FILE_KEY", Context.MODE_PRIVATE);
+
 //        Change color on click
         msgBtn.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -117,7 +124,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 changeBtnActif(v, event, R.drawable.highlightsemiroundedbutton, R.drawable.semiroundedbutton);
-                return true;
+                return false;
             }
         });
 
@@ -161,6 +168,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return;
         }
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME, MIN_DISTANCE, this);
+
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                parked = sharedpreferences.getBoolean("parked", false);
+                if (parked) {
+                    double lat = getFloatAsDouble(sharedpreferences.getFloat("lat", 0));
+                    double lng = getFloatAsDouble(sharedpreferences.getFloat("lng", 0));
+
+                    LatLng result = new LatLng(lat, lng);
+                    CameraUpdate loc = CameraUpdateFactory.newLatLngZoom(result, DEFAULT_ZOOM);
+                    mMap.animateCamera(loc);
+                } else {
+                    marker = mMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()))
+                            .title("You parked here!"));
+                    editor.putBoolean("parked", true);
+                    editor.putFloat("lat", (float) mLastKnownLocation.getLatitude());
+                    editor.putFloat("lng", (float) mLastKnownLocation.getLongitude());
+                    editor.commit();
+                }
+            }
+        });
+    }
+
+    public static double getFloatAsDouble(float value) {
+        return Double.valueOf(Float.valueOf(value).toString()).doubleValue();
     }
 
     //      Saves the state of the map when the activity is paused.
@@ -196,6 +230,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
+
+        parked = sharedpreferences.getBoolean("parked", false);
+        editor = sharedpreferences.edit();
+
+        if (parked) {
+            double lat = getFloatAsDouble(sharedpreferences.getFloat("lat", 0));
+            double lng = getFloatAsDouble(sharedpreferences.getFloat("lng", 0));
+
+            Toast.makeText(MapsActivity.this, "True in createOn", Toast.LENGTH_SHORT).show();
+
+            marker = mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(lat, lng))
+                    .title("You parked here!"));
+        } else {
+            Toast.makeText(MapsActivity.this, "False in createOn", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void getDeviceLocation() {
