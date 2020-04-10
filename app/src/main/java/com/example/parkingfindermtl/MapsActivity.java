@@ -22,7 +22,6 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Switch;
-import android.widget.Toast;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -46,29 +45,17 @@ import com.google.android.libraries.places.widget.listener.PlaceSelectionListene
 
 import java.util.Arrays;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, CompoundButton.OnCheckedChangeListener, LocationListener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, CompoundButton.OnCheckedChangeListener, LocationListener, GoogleMap.OnMarkerClickListener {
     private GoogleMap mMap;
 
-    private LocationManager locationManager;
-
-    private CameraPosition mCameraPosition;
-
-    private ImageView msgBtn;
-
-    private Button saveBtn;
-
-    private Switch userTrack;
-
-    private String apiKey;
-
-    private boolean followme = false;
+    private boolean followMe = false;
     private boolean parked;
     private boolean mLocationPermissionGranted;
 
-    private SharedPreferences sharedpreferences;
-    private SharedPreferences.Editor editor;
+    protected static SharedPreferences sharedpreferences;
+    protected static SharedPreferences.Editor editor;
 
-    private Marker marker;
+    protected static Marker markerParking;
 
     //    The entry point to the Fused Location Provider.
     private FusedLocationProviderClient mFusedLocationProviderClient;
@@ -91,6 +78,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //   Keys for storing activity state.
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
+    protected static final String PREFERENCE_FILE_KEY = "com.example.parkingfindermtl.PREFERENCE_FILE_KEY";
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -100,7 +88,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //        Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
-            mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
+            CameraPosition mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
 
         setContentView(R.layout.activity_maps);
@@ -112,18 +100,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
 
 //        Initialise api key
-        apiKey = getString(R.string.google_maps_key);
+        String apiKey = getString(R.string.google_maps_key);
 
 //        Initialise views
-        msgBtn = findViewById(R.id.btn_msg);
-        saveBtn = findViewById(R.id.btnSaveParking);
-        userTrack = findViewById(R.id.switchFollow);
+        ImageView msgBtn = findViewById(R.id.btn_msg);
+        Button saveBtn = findViewById(R.id.btnSaveParking);
+        Switch userTrack = findViewById(R.id.switchFollow);
 
 //        Initialise map
         mapFragment.getMapAsync(this);
 
 //        Initialise sharedPreference
-        sharedpreferences = getSharedPreferences("com.example.parkingfindermtl.PREFERENCE_FILE_KEY", Context.MODE_PRIVATE);
+        sharedpreferences = getSharedPreferences(PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
+        editor = sharedpreferences.edit();
 
 //        Change color on click
         msgBtn.setOnTouchListener(new View.OnTouchListener() {
@@ -170,7 +159,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -185,25 +174,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                parked = sharedpreferences.getBoolean("parked", false);
-                if (parked) {
-                    double lat = getFloatAsDouble(sharedpreferences.getFloat("lat", 0));
-                    double lng = getFloatAsDouble(sharedpreferences.getFloat("lng", 0));
-
-                    LatLng result = new LatLng(lat, lng);
-                    CameraUpdate loc = CameraUpdateFactory.newLatLngZoom(result, DEFAULT_ZOOM);
-                    mMap.animateCamera(loc);
-                } else {
-                    marker = mMap.addMarker(new MarkerOptions()
-                            .position(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()))
-                            .title("You parked here!"));
-                    editor.putBoolean("parked", true);
-                    editor.putFloat("lat", (float) mLastKnownLocation.getLatitude());
-                    editor.putFloat("lng", (float) mLastKnownLocation.getLongitude());
-                    editor.commit();
-                }
+                setMarkerParking();
             }
         });
+
+
+    }
+
+    public void setMarkerParking() {
+        parked = sharedpreferences.getBoolean("parked", false);
+        if (parked) {
+            double lat = getFloatAsDouble(sharedpreferences.getFloat("lat", 0));
+            double lng = getFloatAsDouble(sharedpreferences.getFloat("lng", 0));
+
+            LatLng result = new LatLng(lat, lng);
+            CameraUpdate loc = CameraUpdateFactory.newLatLngZoom(result, DEFAULT_ZOOM);
+            mMap.animateCamera(loc);
+        } else {
+            markerParking = mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()))
+                    .title("You parked here!"));
+            editor.putBoolean("parked", true);
+            editor.putFloat("lat", (float) mLastKnownLocation.getLatitude());
+            editor.putFloat("lng", (float) mLastKnownLocation.getLongitude());
+            editor.commit();
+        }
     }
 
     public static double getFloatAsDouble(float value) {
@@ -244,19 +239,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
 
+        mMap.setOnMarkerClickListener(this);
+
         parked = sharedpreferences.getBoolean("parked", false);
 
         if (parked) {
             double lat = getFloatAsDouble(sharedpreferences.getFloat("lat", 0));
             double lng = getFloatAsDouble(sharedpreferences.getFloat("lng", 0));
 
-            Toast.makeText(MapsActivity.this, "True in createOn", Toast.LENGTH_SHORT).show();
-
-            marker = mMap.addMarker(new MarkerOptions()
+            markerParking = mMap.addMarker(new MarkerOptions()
                     .position(new LatLng(lat, lng))
-                    .title("You parked here!"));
-        } else {
-            Toast.makeText(MapsActivity.this, "False in createOn", Toast.LENGTH_SHORT).show();
+                    .title("You parked here!")
+                    .snippet("Tap for more option"));
+
+            markerParking.showInfoWindow();
         }
     }
 
@@ -335,13 +331,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        followme = isChecked;
+        followMe = isChecked;
     }
 
     @Override
     public void onLocationChanged(Location location) {
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        if (followme) {
+        if (followMe) {
             CameraPosition.Builder positionBuilder = new CameraPosition.Builder()
                     .target(latLng)
                     .zoom(17f)
@@ -350,7 +346,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-//    The following methods are empty
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        if (marker.equals(markerParking)) {
+            ActionBottomDialogFragment bottomSheetFragment = new ActionBottomDialogFragment();
+            bottomSheetFragment.show(getSupportFragmentManager(), bottomSheetFragment.getTag());
+        }
+        return false;
+    }
+
+    public static void removeParking() {
+        markerParking.remove();
+        editor.putBoolean("parked", false).commit();
+    }
+
+    //    The following methods are empty
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
     }
@@ -362,4 +372,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onProviderDisabled(String provider) {
     }
+
+
 }

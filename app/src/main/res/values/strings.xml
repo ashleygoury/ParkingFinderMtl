@@ -3,4 +3,9 @@
     <string name="title_activity_maps">Map</string>
     <string name="msgIcon">Msg</string>
     <string name="btnSaveParking">Save Parking</string>
+    <string name="bottom_sheet_title">Please select an option</string>
+    <string name="bottom_sheet_sub_class">Go back or tap on screen to cancel</string>
+    <string name="bottom_sheet_btn_navigation">Direction to car</string>
+    <string name="bottom_sheet_btn_delete">Delete</string>
+    <string name="follow_me">Follow me</string>
 </resources>
