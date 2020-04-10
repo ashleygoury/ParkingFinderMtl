@@ -177,8 +177,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 setMarkerParking();
             }
         });
-
-
     }
 
     public void setMarkerParking() {
@@ -353,11 +351,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             bottomSheetFragment.show(getSupportFragmentManager(), bottomSheetFragment.getTag());
         }
         return false;
-    }
-
-    public static void removeParking() {
-        markerParking.remove();
-        editor.putBoolean("parked", false).commit();
     }
 
     //    The following methods are empty
