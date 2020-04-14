@@ -27,6 +27,8 @@ public class ActionBottomDialogFragment extends BottomSheetDialogFragment {
             public void onClick(View v) {
                 MapsActivity.markerParking.remove();
                 MapsActivity.editor.putBoolean("parked", false).commit();
+                MapsActivity.saveBtn.setText(R.string.btnSaveParking);
+                dismiss();
             }
         });
 
@@ -41,6 +43,7 @@ public class ActionBottomDialogFragment extends BottomSheetDialogFragment {
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                 mapIntent.setPackage("com.google.android.apps.maps");
                 startActivity(mapIntent);
+                dismiss();
             }
         });
     }

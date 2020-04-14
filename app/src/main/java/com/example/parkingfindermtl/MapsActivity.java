@@ -31,6 +31,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -47,6 +48,8 @@ import java.util.Arrays;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, CompoundButton.OnCheckedChangeListener, LocationListener, GoogleMap.OnMarkerClickListener {
     private GoogleMap mMap;
+
+    protected static Button saveBtn;
 
     private boolean followMe = false;
     private boolean parked;
@@ -104,7 +107,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 //        Initialise views
         ImageView msgBtn = findViewById(R.id.btn_msg);
-        Button saveBtn = findViewById(R.id.btnSaveParking);
+        saveBtn = findViewById(R.id.btnSaveParking);
         Switch userTrack = findViewById(R.id.switchFollow);
 
 //        Initialise map
@@ -188,14 +191,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng result = new LatLng(lat, lng);
             CameraUpdate loc = CameraUpdateFactory.newLatLngZoom(result, DEFAULT_ZOOM);
             mMap.animateCamera(loc);
+
         } else {
             markerParking = mMap.addMarker(new MarkerOptions()
                     .position(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()))
-                    .title("You parked here!"));
+                    .title("You parked here!")
+                    .snippet("Tap for more option")
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.parking)));
             editor.putBoolean("parked", true);
             editor.putFloat("lat", (float) mLastKnownLocation.getLatitude());
             editor.putFloat("lng", (float) mLastKnownLocation.getLongitude());
             editor.commit();
+            saveBtn.setText("Find Car");
         }
     }
 
@@ -242,13 +249,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         parked = sharedpreferences.getBoolean("parked", false);
 
         if (parked) {
+            saveBtn.setText("Find Car");
             double lat = getFloatAsDouble(sharedpreferences.getFloat("lat", 0));
             double lng = getFloatAsDouble(sharedpreferences.getFloat("lng", 0));
 
             markerParking = mMap.addMarker(new MarkerOptions()
                     .position(new LatLng(lat, lng))
                     .title("You parked here!")
-                    .snippet("Tap for more option"));
+                    .snippet("Tap for more option")
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.parking)));
 
             markerParking.showInfoWindow();
         }
@@ -365,6 +374,5 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onProviderDisabled(String provider) {
     }
-
 
 }
