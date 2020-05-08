@@ -23,6 +23,9 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Switch;
 
+import com.example.parkingfindermtl.db.ParkingDataSource;
+import com.example.parkingfindermtl.db.PolylinesDataProvider;
+import com.example.parkingfindermtl.models.Polyline;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -45,6 +48,9 @@ import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 
 import java.util.Arrays;
+
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, CompoundButton.OnCheckedChangeListener, LocationListener, GoogleMap.OnMarkerClickListener {
     private GoogleMap mMap;
@@ -83,10 +89,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final String KEY_LOCATION = "location";
     protected static final String PREFERENCE_FILE_KEY = "com.example.parkingfindermtl.PREFERENCE_FILE_KEY";
 
+    private ParkingDataSource dataSource;
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Realm.init(this);
+
+        RealmConfiguration configuration = new RealmConfiguration.Builder()
+                .name("polyline_db.realm")
+                .deleteRealmIfMigrationNeeded()
+                .build();
+
+        Realm.deleteRealm(configuration);
+
+        Realm.setDefaultConfiguration(configuration);
 
 //        Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -101,6 +120,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
                 getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+
+//        Open database
+
+        dataSource = new ParkingDataSource();
+        dataSource.open();
 
 //        Initialise api key
         String apiKey = getString(R.string.google_maps_key);
@@ -180,6 +204,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 setMarkerParking();
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        for (Polyline polyline : PolylinesDataProvider.parkingList) {
+            dataSource.createPolyline(polyline);
+        }
     }
 
     public void setMarkerParking() {
