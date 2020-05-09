@@ -16,13 +16,13 @@ public class PolylinesDataProvider {
     static {
         parkingList = new ArrayList<>();
 
-        addPolyline(new Polyline(true, 45.736301
-                        , -73.824717
-                        , 45.742785
-                        , -73.826616
-                        , "Rosemont", 413),
+        addPolyline(new Polyline(false, 45.530086
+                        , -73.599516
+                        , 45.530645
+                        , -73.598608
+                        , "Rue Marmier", 5825),
                 new Day(1,
-                        new Time(7, 8, 30, 30)));
+                        new Time(19, 0, 0, 0)));
     }
 
     private static void addPolyline(Polyline polyline, Day... days) {

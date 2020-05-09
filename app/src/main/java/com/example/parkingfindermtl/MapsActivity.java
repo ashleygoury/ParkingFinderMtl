@@ -22,6 +22,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Switch;
+import android.widget.Toast;
 
 import com.example.parkingfindermtl.db.ParkingDataSource;
 import com.example.parkingfindermtl.db.PolylinesDataProvider;
@@ -54,7 +55,7 @@ import java.util.List;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, CompoundButton.OnCheckedChangeListener, LocationListener, GoogleMap.OnMarkerClickListener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, CompoundButton.OnCheckedChangeListener, LocationListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnPolylineClickListener {
     private GoogleMap mMap;
 
     protected static Button saveBtn;
@@ -212,21 +213,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-//        for (Polyline polyline : PolylinesDataProvider.parkingList) {
-//            dataSource.createPolyline(polyline);
-//        }
-
-//        List<Polyline> allPolylines = dataSource.getAllPolylines();
-//
-//        for (Polyline polyline : allPolylines) {
-//            Log.i(TAG, "polyline: " + polyline);
-//        }
-    }
-
     public void setMarkerParking() {
         parked = sharedpreferences.getBoolean("parked", false);
         if (parked) {
@@ -311,13 +297,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         for (Polyline polyline : allPolylines) {
 
-            mMap.addPolyline(new PolylineOptions().clickable(true).add(
+            mMap.addPolyline(new PolylineOptions().clickable(true).color(Color.GREEN).width(11).add(
                     new LatLng(polyline.getStartLat(), polyline.getStartLng()),
                     new LatLng(polyline.getEndLat(), polyline.getEndLng())
             ));
 
             Log.i(TAG, "polyline: " + polyline);
         }
+
+        googleMap.setOnPolylineClickListener(this);
     }
 
     private void getDeviceLocation() {
@@ -432,4 +420,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onProviderDisabled(String provider) {
     }
 
+    @Override
+    public void onPolylineClick(final com.google.android.gms.maps.model.Polyline polyline) {
+        polyline.setColor(Color.rgb(72,251,186));
+        Toast.makeText(this, "Test", Toast.LENGTH_SHORT).show();
+    }
 }
