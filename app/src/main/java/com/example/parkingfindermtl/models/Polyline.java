@@ -20,23 +20,23 @@ public class Polyline extends RealmObject {
 
     private double endLng;
 
-    private String vile;
-
     private String rue;
+
+    private int numeroBatimentProche;
 
     private RealmList<Day> days;
 
     public Polyline() {
     }
 
-    public Polyline(boolean allYear, double startLat, double startLng, double endLat, double endLng, String vile, String rue) {
+    public Polyline(boolean allYear, double startLat, double startLng, double endLat, double endLng, String rue, int numeroBatimentProche) {
         this.allYear = allYear;
         this.startLat = startLat;
         this.startLng = startLng;
         this.endLat = endLat;
         this.endLng = endLng;
-        this.vile = vile;
         this.rue = rue;
+        this.numeroBatimentProche = numeroBatimentProche;
     }
 
     public String getId() {
@@ -95,19 +95,19 @@ public class Polyline extends RealmObject {
         this.days = days;
     }
 
-    public String getVile() {
-        return vile;
-    }
-
-    public void setVile(String vile) {
-        this.vile = vile;
-    }
-
     public String getRue() {
         return rue;
     }
 
     public void setRue(String rue) {
         this.rue = rue;
+    }
+
+    public int getNumeroBatimentProche() {
+        return numeroBatimentProche;
+    }
+
+    public void setNumeroBatimentProche(int numeroBatimentProche) {
+        this.numeroBatimentProche = numeroBatimentProche;
     }
 }

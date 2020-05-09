@@ -4,6 +4,8 @@ import android.util.Log;
 
 import com.example.parkingfindermtl.models.Polyline;
 
+import java.util.List;
+
 import io.realm.Realm;
 
 public class ParkingDataSource {
@@ -30,5 +32,9 @@ public class ParkingDataSource {
         });
 
         Log.d(TAG, "createPolyline: the id: " + polyline.getId());
+    }
+
+    public List<Polyline> getAllPolylines() {
+        return realm.where(Polyline.class).findAll();
     }
 }

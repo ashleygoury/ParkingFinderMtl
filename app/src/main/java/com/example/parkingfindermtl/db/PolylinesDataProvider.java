@@ -20,15 +20,7 @@ public class PolylinesDataProvider {
                         , -73.824717
                         , 45.742785
                         , -73.826616
-                        , "Rosemont", "La Petite-Patrie"),
-                new Day(1,
-                        new Time(7, 8, 30, 30)));
-
-        addPolyline(new Polyline(true, 45.743331
-                        , -73.826693
-                        , 45.743331
-                        , -73.825924
-                        , "Rosemont", "La Petite-Patrie"),
+                        , "Rosemont", 413),
                 new Day(1,
                         new Time(7, 8, 30, 30)));
     }

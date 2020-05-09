@@ -39,6 +39,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
@@ -48,6 +49,7 @@ import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 
 import java.util.Arrays;
+import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -204,15 +206,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 setMarkerParking();
             }
         });
+
+        for (Polyline polyline : PolylinesDataProvider.parkingList) {
+            dataSource.createPolyline(polyline);
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        for (Polyline polyline : PolylinesDataProvider.parkingList) {
-            dataSource.createPolyline(polyline);
-        }
+//        for (Polyline polyline : PolylinesDataProvider.parkingList) {
+//            dataSource.createPolyline(polyline);
+//        }
+
+//        List<Polyline> allPolylines = dataSource.getAllPolylines();
+//
+//        for (Polyline polyline : allPolylines) {
+//            Log.i(TAG, "polyline: " + polyline);
+//        }
     }
 
     public void setMarkerParking() {
@@ -293,6 +305,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.parking)));
 
             markerParking.showInfoWindow();
+        }
+
+        List<Polyline> allPolylines = dataSource.getAllPolylines();
+
+        for (Polyline polyline : allPolylines) {
+
+            mMap.addPolyline(new PolylineOptions().clickable(true).add(
+                    new LatLng(polyline.getStartLat(), polyline.getStartLng()),
+                    new LatLng(polyline.getEndLat(), polyline.getEndLng())
+            ));
+
+            Log.i(TAG, "polyline: " + polyline);
         }
     }
 
